@@ -3,22 +3,24 @@ import inspect
 import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 
-from tf2_dist_utils import build_loss
+from fm_zoo import FactorizationMachine
+from tf2_target_dist_utils import build_loss
+
 
 class GenFactMachine():
-
-    def __init__(self, dist, feature_cards, factor_dim):
-        self.dist = dist
+    
+    def __init__(self, target_dist, feature_cards, factor_dim, **kwargs):
+        self.target_dist = target_dist
         self.feature_cards = feature_cards
         self.factor_dim = factor_dim
-        self.n_params = len(inspect.signature(dist).parameters)
+        self.n_params = len(inspect.signature(target_dist).parameters)
 
     def fit(self, X, y):
-        self.loss = build_loss("GFMloss", self.dist)
+        self.loss = build_loss("GFMloss", self.target_dist)
 
         self.model = self._build_model(
             X,
-            build_loss("GFMloss", self.dist),
+            build_loss("GFMloss", self.target_dist),
             self.n_params, 
             self.feature_cards, 
             self.factor_dim)
@@ -40,7 +42,7 @@ class GenFactMachine():
         shape = params.shape
 
         # model.predict returns tensor of parameters
-        # dist objects are assumed to take the individual
+        # target_dist objects are assumed to take the individual
         # columns of the tensor as input
         if len(shape) > 1:
           lst = tf.split(
@@ -51,9 +53,9 @@ class GenFactMachine():
           lst = [params]
         
         if nsamples:
-          preds = self.dist(*lst).sample(nsamples)
+          preds = self.target_dist(*lst).sample(nsamples)
         else:
-          preds = self.dist(*lst).mean()   
+          preds = self.target_dist(*lst).mean()   
 
         return preds
 
