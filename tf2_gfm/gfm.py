@@ -4,7 +4,7 @@ import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 
 from fm_zoo import FactorizationMachine
-from tf2_target_dist_utils import build_loss
+from tf2_dist_utils.losses import build_loss
 
 
 class GenFactMachine():

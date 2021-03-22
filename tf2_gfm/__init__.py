@@ -1,1 +1,1 @@
-from tf2_gfm import GenFactMachine
+from gfm import GenFactMachine
