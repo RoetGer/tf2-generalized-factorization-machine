@@ -1,0 +1,5 @@
+numpy >= 1.19.5
+tensorflow >= 2.4.1
+tensorflow_probability >= 0.12.1
+tf2_dist_utils
+tf2_fm_zoo
