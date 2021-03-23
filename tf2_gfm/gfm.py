@@ -35,7 +35,7 @@ class GenFactMachine():
         self.factor_dim = factor_dim
         self.n_params = len(inspect.signature(target_dist).parameters)
 
-    def fit(self, X, y):
+    def fit(self, X, y, **kwargs):
         '''Fit GFM to the training data.
 
         Parameters
@@ -61,14 +61,19 @@ class GenFactMachine():
             self.feature_cards, 
             self.factor_dim)
 
+        default_fit_param = {
+            "validation_split": 0.15, 
+            "batch_size": 16,
+            "epochs": 100,
+            "callbacks": [
+              tfk.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
+            ]
+        }
+        default_fit_param.update(kwargs)
+
         self.hist = self.model.fit(
             X, y,
-            validation_split=0.15, 
-            batch_size=16,
-            epochs=100,
-            callbacks=[
-              tfk.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
-            ])
+            **default_fit_param)
         
         return self
 
@@ -110,7 +115,7 @@ class GenFactMachine():
 
         return preds
 
-    def _build_model(self, X, loss, n_params, feature_cards, factor_dim):
+    def _build_model(self, X, loss, n_params, feature_cards, factor_dim, **kwargs):
 
         inputs_ = tfk.Input(shape=X.shape[1], dtype=X.dtype)
 
@@ -127,9 +132,14 @@ class GenFactMachine():
         ]
         params =  tfkl.concatenate(params)
 
+        default_compile_param = {
+            "optimizer": tfk.optimizers.RMSprop()
+        }
+        default_compile_param.update(kwargs)
+
         model = tfk.Model(inputs=inputs_, outputs=params)
         model.compile(
             loss=loss(),
-            optimizer=tfk.optimizers.RMSprop())
+            **default_compile_param)
         
         return model
