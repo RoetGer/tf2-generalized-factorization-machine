@@ -5,8 +5,78 @@ from functools import partial
 import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 
+from fm_zoo import AutomaticFeatureInteraction
+from fm_zoo import AttentionalFactorizationMachine 
+from fm_zoo import DeepFM
 from fm_zoo import FactorizationMachine
+from fm_zoo import FieldAwareNeuralFactorizationMachine
+from fm_zoo import FMNeuralNetwork
+from fm_zoo import NeuralFactorizationMachine
+from fm_zoo import CompressedInteractionNetwork, ExtremeDeepFactorizationMachine
+from fm_zoo import FieldAwareFactorizationMachine
 from tf2_dist_utils.losses import build_loss
+
+mdl_dic = {
+    "fm": (
+        FactorizationMachine,
+        {}
+    ),
+    "afi": (
+        AutomaticFeatureInteraction,
+        {
+            "n_heads": 5, 
+            "n_attentions": 5, 
+            "hidden_sizes": [5, 3, 1]
+        }
+    ),
+    "afm": (
+        AttentionalFactorizationMachine,
+        {
+            "attention_size": 2
+        }
+    ),
+    "dfm": (
+        DeepFM,
+        {
+            "hidden_sizes": [5, 3, 1]
+        }
+    ),
+    "ffm": (
+        FieldAwareFactorizationMachine,
+        {}
+    ),
+    "fnfm": (
+        FieldAwareNeuralFactorizationMachine,
+        {
+            "hidden_sizes": [5, 3, 1]
+        }
+    ),
+    "fnn": (
+        FMNeuralNetwork,
+        {
+            "hidden_sizes": [5, 3, 1]
+        }
+    ),
+    "nfm": (
+        NeuralFactorizationMachine,
+        {
+            "hidden_sizes": [5, 3, 1]           
+        }
+    ),
+    "cin": (
+        CompressedInteractionNetwork,
+        {
+            "cin_hidden_sizes": [100, 50, 10]        
+        }
+    ), 
+    "xdfm": (
+        ExtremeDeepFactorizationMachine,
+        {
+            "fnn_hidden_sizes": [20, 10, 1],
+            "cin_hidden_sizes": [10, 5]
+        }
+    )
+}
 
 
 class GenFactMachine():
@@ -37,11 +107,11 @@ class GenFactMachine():
         self.factor_dim = factor_dim
         self.n_params = len(inspect.signature(target_dist).parameters)
         
-        default_mdl_param = {
+        kwargs.update({
               "feature_cards": feature_cards, 
               "factor_dim": factor_dim
-        }
-        default_mdl_param.update(**kwargs)
+        })
+        default_mdl_param.update(kwargs)
         
         self.base_mdl = partial(FactorizationMachine, **default_mdl_param)
 
