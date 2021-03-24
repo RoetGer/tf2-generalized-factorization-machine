@@ -1,5 +1,7 @@
 import inspect
 
+from functools import partial
+
 import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 
@@ -34,6 +36,14 @@ class GenFactMachine():
         self.feature_cards = feature_cards
         self.factor_dim = factor_dim
         self.n_params = len(inspect.signature(target_dist).parameters)
+        
+        default_mdl_param = {
+              "feature_cards": feature_cards, 
+              "factor_dim": factor_dim
+        }
+        default_mdl_param.update(**kwargs)
+        
+        self.base_mdl = partial(FactorizationMachine, **default_mdl_param)
 
     def fit(self, X, y, **kwargs):
         '''Fit GFM to the training data.
@@ -55,11 +65,11 @@ class GenFactMachine():
         self.loss = build_loss("GFMloss", self.target_dist)
 
         self.model = self._build_model(
-            X,
+            self.base_mdl,
             build_loss("GFMloss", self.target_dist),
-            self.n_params, 
-            self.feature_cards, 
-            self.factor_dim)
+            X.shape[1],
+            X.dtype,
+            self.n_params)
 
         default_fit_param = {
             "validation_split": 0.15, 
@@ -115,16 +125,19 @@ class GenFactMachine():
 
         return preds
 
-    def _build_model(self, X, loss, n_params, feature_cards, factor_dim, **kwargs):
+    def _build_model(self, 
+                     mdl, 
+                     loss, 
+                     input_shape, 
+                     input_dtype,
+                     n_params, 
+                     **kwargs):
 
-        inputs_ = tfk.Input(shape=X.shape[1], dtype=X.dtype)
+        inputs_ = tfk.Input(shape=input_shape, dtype=X.dtype)
 
         fms = [
-            FactorizationMachine(
-              feature_cards=feature_cards, 
-              factor_dim=factor_dim,
-              name="sub_mdl_" + str(i))
-            for i in range(n_params)        
+            mdl(name="mdl" + str(i))
+                for i in range(n_params)        
         ]
 
         params = [
