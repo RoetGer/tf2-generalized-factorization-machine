@@ -101,19 +101,20 @@ class GenFactMachine():
         Number of dimensions of the latent factorization space.
     '''
     
-    def __init__(self, target_dist, feature_cards, factor_dim, **kwargs):    
+    def __init__(self, mdl, target_dist, feature_cards, factor_dim, **kwargs):    
         self.target_dist = target_dist
         self.feature_cards = feature_cards
         self.factor_dim = factor_dim
         self.n_params = len(inspect.signature(target_dist).parameters)
         
-        kwargs.update({
-              "feature_cards": feature_cards, 
-              "factor_dim": factor_dim
-        })
+        mdl, default_mdl_param = mdl_dic[mdl]
         default_mdl_param.update(kwargs)
         
-        self.base_mdl = partial(FactorizationMachine, **default_mdl_param)
+        self.base_mdl = partial(
+            mdl,
+            feature_cards=feature_cards,
+            factor_dim=factor_dim,
+            **default_mdl_param)
 
     def fit(self, X, y, **kwargs):
         '''Fit GFM to the training data.
