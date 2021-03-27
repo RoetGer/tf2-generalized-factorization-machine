@@ -99,6 +99,9 @@ class GenFactMachine():
         Number of unique factors for each feature.
     factor_dim : int
         Number of dimensions of the latent factorization space.
+    **kwargs : dict
+        User-specified keyword arguments used to overwrite default settings
+        for the model.
     '''
     
     def __init__(self, mdl, target_dist, feature_cards, factor_dim, **kwargs):    
@@ -123,9 +126,11 @@ class GenFactMachine():
         ----------
         X : Array-like of shape (n_samples, n_features)
             The training input samples.
-
         y : Array-like of shape (n_samples,) or (n_samples, n_target_dimension)
             The target values.
+        **kwargs : dict
+            User-specified keyword arguments used to overwrite default settings
+            for the model building and fitting.
         
         Returns
         -------
@@ -140,7 +145,8 @@ class GenFactMachine():
             build_loss("GFMloss", self.target_dist),
             X.shape[1],
             X.dtype,
-            self.n_params)
+            self.n_params,
+            **kwargs)
 
         default_fit_param = {
             "validation_split": 0.15, 
